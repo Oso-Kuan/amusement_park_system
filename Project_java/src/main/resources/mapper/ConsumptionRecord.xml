@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.IConsumptionRecordDao">
+	<sql id="getConsumptionRecordWhere">
+		<where>
+			<if
+				test="consumptionrecord.ticketid != null and consumptionrecord.ticketid != ''">
+				<bind value="'%'+consumptionrecord.ticketid+'%'"
+					name="ticketidtext"></bind>
+				ticketid like #{ticketidtext}
+			</if>
+			<if
+				test="consumptionrecord.billid != null and consumptionrecord.billid != ''">
+				<bind value="'%'+consumptionrecord.billid+'%'"
+					name="billidtext"></bind>
+				and billid like #{billidtext}
+			</if>
+			<if
+				test="consumptionrecord.actualprice != null and consumptionrecord.actualprice !=''">
+				<bind value="'%'+consumptionrecord.actualprice+'%'"
+					name="actualpricetext"></bind>
+				and actualprice like #{actualpricetext}
+			</if>
+			<if
+				test="consumptionrecord.number != null and consumptionrecord.number !=''">
+				<bind value="'%'+consumptionrecord.number+'%'"
+					name="numbertext"></bind>
+				and number like #{numbertext}
+			</if>
+			<if
+				test="consumptionrecord.time != null and consumptionrecord.time !=''">
+				<bind value="'%'+consumptionrecord.time+'%'" name="timetext"></bind>
+				and time like #{timetext}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+	<!-- 结果映射 -->
+	<resultMap id="ConsumptionRecordResultMap"
+		type="com.easy.bean.ConsumptionRecord">
+		<id property="id" column="id" />
+		<result property="billid" column="billid" />
+		<result property="ticketid" column="ticketid" />
+		<result property="actualprice" column="actualprice" />
+		<result property="number" column="number" />
+		<result property="time" column="time" />
+		<!-- 使用 association 映射 bill 对象 -->
+		<association property="bill" javaType="com.easy.bean.Bill"
+			select="getBill" column="billid">
+		</association>
+
+		<!-- 使用 association 映射 ticket 对象 -->
+		<association property="ticket"
+			javaType="com.easy.bean.Ticket" select="getTicket" column="ticketid">
+		</association>
+	</resultMap>
+	<!-- 查询消费记录，联接 bill 和 ticket 表 -->
+	<select id="getConsumptionRecord"
+		resultMap="ConsumptionRecordResultMap">
+		select * from consumptionrecord
+		<include refid="getConsumptionRecordWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			ORDER BY time desc
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+	<select id="getAllPrice" resultType="java.math.BigDecimal">
+		select sum(number*actualprice) from consumptionrecord group by time ORDER BY time desc limit 7
+	</select>
+	<select id="getAllTime" resultType="java.time.LocalDate">
+		select time from consumptionrecord group by time ORDER BY time desc limit 7
+	</select>
+	<select id="getCount" resultType="int">
+		select count(*) from consumptionrecord
+		<include refid="getConsumptionRecordWhere"></include>
+	</select>
+	<select id="getBill" resultType="com.easy.bean.Bill">
+		select id, name, discount from
+		bill where id = #{billid}
+	</select>
+	<select id="getTicket" resultType="com.easy.bean.Ticket">
+		select id, name, price from
+		ticket where id = #{ticketid}
+	</select>
+	<select id="getPrice" parameterType="Integer" resultType="java.math.BigDecimal">
+		select price from ticket where
+		id = #{ticketid}
+	</select>
+	<select id="getDiscount" parameterType="Integer" resultType="java.math.BigDecimal">
+		select discount from bill
+		where id = #{billid}
+	</select>
+	<select id="getConsumptionRecordBill"
+		resultType="com.easy.bean.Bill">
+		select * from bill
+	</select>
+	<select id="getConsumptionRecordTicket"
+		resultType="com.easy.bean.Ticket">
+		select *from ticket
+	</select>
+
+
+	<insert id="addList">
+		insert into consumptionrecord(ticketid,billid, actualprice,
+		number,time)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.ticketid}, #{it.billid}, #{it.actualprice},
+			#{it.number},#{it.time})
+		</foreach>
+	</insert>
+	<insert id="addConsumptionRecord" useGeneratedKeys="true"
+		keyColumn="id" keyProperty="id">
+		insert into
+		consumptionrecord(ticketid,billid, actualprice, number,time)
+		values
+		(#{ticketid}, #{billid}, #{actualprice}, #{number}, #{time})
+	</insert>
+	<delete id="delConsumptionRecord">
+		update consumptionrecord set isdel = 1 where id =
+		#{id}
+	</delete>
+
+	<update id="editConsumptionRecord">
+		update consumptionrecord
+		set ticketid = #{ticketid},
+		billid = #{billid},
+		actualprice = #{actualprice},
+		number = #{number}
+		where id = #{id}
+	</update>
+	<update id="editConsumptionRecordItem">
+		update consumptionrecord
+		<set>
+			<if test='ticketid != null and ticketid != ""'>
+				ticketid = #{ticketid},
+			</if>
+			<if test='billid != null and billid != ""'>
+				billid = #{billid},
+			</if>
+			<if test='actualprice != null'>
+				actualprice = #{actualprice},
+			</if>
+			<if test='number != null'>
+				number = #{number},
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	<update id="edit">
+		update consumptionrecord
+		set ticketid =
+		#{consumptionrecord.ticketid},
+		billid = #{consumptionrecord.billid},
+		actualprice = #{consumptionrecord.actualprice},
+		number =
+		#{consumptionrecord.number}
+		where id = #{id}
+	</update>
+
+</mapper>

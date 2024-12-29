@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.IAmusementFacilityDao">
+	<sql id="getAmusementFacilityWhere">
+		<where>
+			<if
+				test="amusementfacility.name !=null and amusementfacility.name !=''">
+				<bind value="'%'+amusementfacility.name+'%'" name="nametext"></bind>
+				name like #{nametext}
+			</if>
+			<if
+				test="amusementfacility.amusementtypeid !=null and amusementfacility.amusementtypeid !=''">
+				<bind value="'%'+amusementfacility.type+'%'" name="typetext"></bind>
+				and type like #{typetext}
+			</if>
+			<if
+				test="amusementfacility.status !=null and amusementfacility.status !=''">
+				<bind value="'%'+amusementfacility.status+'%'"
+					name="statustext"></bind>
+				and status like #{statustext}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+	<!-- 结果映射 -->
+	<resultMap id="AmusementFacilityResultMap"
+		type="com.easy.bean.AmusementFacility">
+		<id property="id" column="id" />
+		<result property="amusementtypeid"
+			column="amusementtypeid" />
+		<!-- 使用 association 映射对象 -->
+		<association property="amusementtype"
+			javaType="com.easy.bean.AmusementType"
+			select="getAmusementType" column="amusementtypeid">
+		</association>
+	</resultMap>
+	<select id="getAmusementFacility"
+		resultMap="AmusementFacilityResultMap">
+		select * from amusementfacility
+		<include refid="getAmusementFacilityWhere"></include>
+		<if test="page.page>=0 and page.size>0">
+			limit #{page.start},#{page.size}
+		</if>
+	</select>
+	<select id="getCount" resultType="int">
+		select count(*) from amusementfacility
+		<include refid="getAmusementFacilityWhere"></include>
+	</select>
+	<select id="getAmusementType"
+		resultType="com.easy.bean.AmusementType">
+		select id,type from
+		amusementtype where id
+		= #{amusementtypeid}
+	</select>
+	<select id="getAmusementFacilityAmusementType"
+		resultType="com.easy.bean.AmusementType">
+		select * from amusementtype
+	</select>
+	<insert id="addList">
+		insert into amusementfacility(name,amusementtypeid,status)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.name},#{it.amusementtypeid},#{it.status})
+		</foreach>
+	</insert>
+	<insert id="addAmusementFacility" useGeneratedKeys="true"
+		keyColumn="id" keyProperty="id">
+		insert into
+		amusementfacility(name,amusementtypeid,status)
+		values(#{name},#{amusementtypeid},#{status})
+	</insert>
+	<delete id="delAmusementFacility">
+		update amusementfacility set isdel=1 where id=#{id}
+	</delete>
+	<update id="editAmusementFacility">
+		update amusementfacility set name=#{name} ,amusementtypeid=#{amusementtypeid},
+		status=#{status} where id=#{id}
+	</update>
+
+	<update id="editAmusementFacilityItem">
+		update amusementfacility
+		<set>
+			<if test='name!=null and name!=""'>
+				name=#{name},
+			</if>
+			<if test='type!=null and type!=""'>
+				amusementtypeid=#{amusementtypeid},
+			</if>
+			<if test='status!=null and status!=""'>
+				status=#{status},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+	<update id="edit">
+		update amusementfacility set
+		name=#{amusementfacility.name},type=#{amusementfacility.amusementtypeid},status=#{amusementfacility.status}
+		where id=#{id}
+	</update>
+
+	<select id="getAllType" resultType="String">
+		select amusementtypeid from
+		amusementfacility
+	</select>
+	<update id="amusementfacilityImg">
+		update amusementfacility set img=#{img} where
+		id=#{id}
+	</update>
+</mapper>

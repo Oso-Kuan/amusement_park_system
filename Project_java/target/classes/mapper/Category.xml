@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.ICategoryDao">
+
+	<sql id="getCategoryWhere">
+		<where>
+			<if test="category.ticketid != null and category.ticketid != ''">
+				<bind value="'%'+category.ticketid+'%'" name="ticketidText"></bind>
+				ticketid like #{ticketidText}
+			</if>
+			<if
+				test="category.amusementfacilityid != null and category.amusementfacilityid != ''">
+				<bind value="'%'+category.amusementfacilityid+'%'"
+					name="amusementfacilityidText"></bind>
+				amusementfacilityid like #{amusementfacilityidText}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+	<!-- 结果映射 -->
+	<resultMap id="CategoryResultMap"
+		type="com.easy.bean.Category">
+		<id property="id" column="id" />
+		<result property="amusementfacilityid"
+			column="amusementfacilityid" />
+		<result property="ticketid" column="ticketid" />
+		<!-- 使用 association 映射 amusementfacility 对象 -->
+		<association property="amusementfacility"
+			javaType="com.easy.bean.AmusementFacility"
+			select="getAmusementFacility" column="amusementfacilityid">
+		</association>
+
+		<!-- 使用 association 映射 ticket 对象 -->
+		<association property="ticket"
+			javaType="com.easy.bean.Ticket" select="getTicket" column="ticketid">
+		</association>
+	</resultMap>
+
+	<select id="getCategory" resultMap="CategoryResultMap">
+		select * from category
+		<include refid="getCategoryWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from category
+		<include refid="getCategoryWhere"></include>
+	</select>
+	<select id="getAmusementFacility"
+		resultType="com.easy.bean.AmusementFacility">
+		select id, name,status from
+		amusementfacility where id
+		= #{amusementfacilityid}
+	</select>
+	<select id="getTicket" resultType="com.easy.bean.Ticket">
+		select id, name, price from
+		ticket where id = #{ticketid}
+	</select>
+	<select id="getPrice" resultType="com.easy.bean.Ticket">
+		select price from ticket where
+		id = #{ticketid}
+	</select>
+
+	<select id="getCategoryAmusementFacility"
+		resultType="com.easy.bean.AmusementFacility">
+		select * from amusementfacility
+	</select>
+	<select id="getCategoryTicket" resultType="com.easy.bean.Ticket">
+		select *from ticket
+	</select>
+
+
+	<insert id="addList">
+		insert into category(ticketid, amusementfacilityid)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.ticketid}, #{it.amusementfacilityid})
+		</foreach>
+	</insert>
+
+	<insert id="addCategory" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into category(ticketid, amusementfacilityid)
+		values
+		(
+		#{ticketid}, #{amusementfacilityid})
+	</insert>
+
+	<delete id="delCategory">
+		update category set isdel=1 where id=#{id}
+	</delete>
+
+	<update id="editCategory">
+		update category set ticketid=#{ticketid},
+		amusementfacilityid=#{amusementfacilityid}
+		where id=#{id}
+	</update>
+
+	<update id="editCategoryItem">
+		update category
+		<set>
+			<if test='ticketid != null and ticketid != ""'>
+				ticketid=#{ticketid},
+			</if>
+			<if test='ticketname != null and ticketname != ""'>
+				amusementfacilityid=#{amusementfacilityid},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+	<update id="edit">
+		update category set ticketid=#{category.ticketid},
+		amusementfacilityid=#{category.amusementfacilityid}
+		where id=#{id}
+	</update>
+
+</mapper>

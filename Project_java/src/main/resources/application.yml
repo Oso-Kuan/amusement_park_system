@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/amusement_park
+    
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  
+logging:
+  level:
+    com.easy.dao: debug
+    
+easy:
+  static:
+    path: img
+    dir: C:\Users\l'x\Desktop\amusement_park_system\Project_front\img
+
+server:
+  tomcat:
+    relaxed-query-chars: "[,],"
+    relaxed-path-chars: "[,],"

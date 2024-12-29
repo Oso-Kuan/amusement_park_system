@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.IUserDao">
+	<select id="getUserByUsername" resultType="com.easy.bean.User">
+		select
+		id,username,userpass,status,img from user
+		where username=#{username} and status=0;
+	</select>
+
+	<sql id="getUserWhere">
+		<where>
+			<if test="user.username != null and user.username != ''">
+				<bind value="'%'+user.username+'%'" name="usernameText"></bind>
+				username like #{usernameText}
+			</if>
+			and status=0
+		</where>
+	</sql>
+
+	<select id="getUser" resultType="com.easy.bean.User">
+		select id,username,img from user
+		<include refid="getUserWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from user
+		<include refid="getUserWhere"></include>
+	</select>
+
+	<insert id="addList">
+		insert into user(username, userpass)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.username}, #{it.userpass})
+		</foreach>
+	</insert>
+
+	<insert id="addUser" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into user(username, userpass)
+		values (#{username}, #{userpass})
+	</insert>
+
+	<delete id="delUser">
+		update user set status=1 where id=#{id}
+	</delete>
+
+	<update id="editUser">
+		update user set username=#{username}, userpass=#{userpass} where id=#{id}
+	</update>
+
+	<update id="editUserItem">
+		update user
+		<set>
+			<if test='username != null and username != ""'>
+				username=#{username},
+			</if>
+			<if test='userpass != null and userpass != ""'>
+				userpass=#{userpass},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+	<update id="userImg">
+		update user set img=#{img} where id=#{id}
+	</update>
+	<select id="getUserByID" resultType="com.easy.bean.User">
+		SELECT * FROM user WHERE id = #{id}
+	</select>
+</mapper>

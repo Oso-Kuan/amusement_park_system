@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.ITicketDao">
+
+	<sql id="getTicketWhere">
+		<where>
+			<if test="ticket.name != null and ticket.name != ''">
+				<bind value="'%'+ticket.name+'%'" name="nameText"></bind>
+				name like #{nameText}
+			</if>
+			<if test="ticket.price != null and ticket.price != ''">
+				<bind value="'%'+ticket.price+'%'" name="priceText"></bind>
+				and price like #{priceText}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+
+	<select id="getTicket" resultType="com.easy.bean.Ticket">
+		select * from ticket
+		<include refid="getTicketWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from ticket
+		<include refid="getTicketWhere"></include>
+	</select>
+
+	<insert id="addList">
+		insert into ticket(name, price)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.name}, #{it.price})
+		</foreach>
+	</insert>
+
+	<insert id="addTicket" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into ticket(name, price)
+		values (#{name}, #{price})
+	</insert>
+
+	<delete id="delTicket">
+		update ticket set isdel=1 where id=#{id}
+	</delete>
+
+	<update id="editTicket">
+		update ticket set name=#{name}, price=#{price} where id=#{id}
+	</update>
+
+	<update id="editTicketItem">
+		update ticket
+		<set>
+			<if test='name != null and name != ""'>
+				name=#{name},
+			</if>
+			<if test='price != null and price != ""'>
+				price=#{price},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+	<update id="edit">
+		update ticket set name=#{ticket.name}, price=#{ticket.price} where id=#{id}
+	</update>
+
+</mapper>

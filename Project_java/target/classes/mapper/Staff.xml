@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.IStaffDao">
+
+	<sql id="getStaffWhere">
+		<where>
+
+			<if test="staff.position != null and staff.position != ''">
+				<bind value="'%'+staff.position+'%'" name="positionText"></bind>
+				position like #{positionText}
+			</if>
+			<if test="staff.name != null and staff.name != ''">
+				<bind value="'%'+staff.name+'%'" name="nameText"></bind>
+				name like #{nameText}
+			</if>
+			<if test="staff.salary != null and staff.salary != ''">
+				<bind value="'%'+staff.salary+'%'" name="salaryText"></bind>
+				and salary like #{salaryText}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+
+	<select id="getStaff" resultType="com.easy.bean.Staff">
+		select * from staff
+		<include refid="getStaffWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from staff
+		<include refid="getStaffWhere"></include>
+	</select>
+
+	<insert id="addList">
+		insert into staff(name,position, salary)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{name},#{it.position}, #{it.salary})
+		</foreach>
+	</insert>
+
+	<insert id="addStaff" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into staff(name,position, salary)
+		values ( #{name},#{position}, #{salary})
+	</insert>
+
+	<delete id="delStaff">
+		update staff set isdel=1 where id=#{id}
+	</delete>
+
+	<update id="editStaff">
+		update staff set name=#{name}, position=#{position}, salary=#{salary} where
+		id=#{id}
+	</update>
+
+	<update id="editStaffItem">
+		update staff
+		<set>
+			<if test='position != null and position != ""'>
+				position=#{position},
+			</if>
+			<if test='name != null and name != ""'>
+				name=#{name},
+			</if>
+			<if test='salary != null and salary != ""'>
+				salary=#{salary},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+	<update id="edit">
+		update staff set name=#{staff.name}, position=#{staff.position},
+		salary=#{staff.salary} where id=#{id}
+	</update>
+
+</mapper>

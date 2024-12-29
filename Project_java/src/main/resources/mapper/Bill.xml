@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.dao.IBillDao">
+
+	<sql id="getBillWhere">
+		<where>
+			<if test="bill.name != null and bill.name != ''">
+				<bind value="'%'+bill.name+'%'" name="nameText"></bind>
+				name like #{nameText}
+			</if>
+			<if test="bill.discount != null and bill.discount != ''">
+				<bind value="'%'+bill.discount+'%'" name="discountText"></bind>
+				and discount like #{discountText}
+			</if>
+			and isdel=0
+		</where>
+	</sql>
+
+	<select id="getBill" resultType="com.easy.bean.Bill">
+		select * from bill
+		<include refid="getBillWhere"></include>
+		<if test="page.page >= 0 and page.size > 0">
+			limit #{page.start}, #{page.size}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from bill
+		<include refid="getBillWhere"></include>
+	</select>
+
+	<insert id="addList">
+		insert into bill(name,discount)
+		values
+		<foreach collection="list" item="it" separator=",">
+			(#{it.name},#{it.discount})
+		</foreach>
+	</insert>
+
+	<insert id="addBill" useGeneratedKeys="true" keyColumn="id"
+		keyProperty="id">
+		insert into bill(name,discount)
+		values (#{name}, #{discount})
+	</insert>
+
+	<delete id="delBill">
+		update bill set isdel=1 where id=#{id}
+	</delete>
+
+	<update id="editBill">
+		update bill set name=#{name},discount=#{discount} where id=#{id}
+	</update>
+
+	<update id="editBillItem">
+		update bill
+		<set>
+			<if test='name != null and name != ""'>
+				name=#{name},
+			</if>
+			<if test='discount != null and discount != ""'>
+				discount=#{discount},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+</mapper>
